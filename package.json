@@ -1,0 +1,28 @@
+{
+  "name": "urlshorter",
+  "version": "0.0.0",
+  "description": "The url shorter test project",
+  "main": "app.js",
+  "scripts": {
+    "start": "node server.js",
+    "development": "export NODE_ENV=development && nodemon server.js",
+    "test": "export NODE_ENV=test && jest --watch",
+    "coverage": "export NODE_ENV=test && jest --coverage"
+  },
+  "author": "Alexander Zimakov",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.15.4",
+    "getconfig": "^3.1.0",
+    "mongodb": "^2.2.31",
+    "winston": "^2.3.1"
+  },
+  "devDependencies": {
+    "eslint": "^4.5.0",
+    "eslint-config-airbnb-base": "^11.3.2",
+    "eslint-plugin-import": "^2.7.0",
+    "jest": "^20.0.4",
+    "nodemon": "^1.11.0",
+    "supertest": "^3.0.0"
+  }
+}
