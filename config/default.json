@@ -4,5 +4,7 @@
   "db": {
     "url": "$DB_URL",
     "options": {}
-  }
+  },
+  "salt": "$SALT",
+  "secret": "$SECRET"
 }
