@@ -18,6 +18,8 @@
     "getconfig": "^3.1.0",
     "jsonwebtoken": "^7.4.3",
     "mongodb": "^2.2.31",
+    "sprintf-js": "^1.1.1",
+    "validator": "^8.1.0",
     "winston": "^2.3.1"
   },
   "devDependencies": {
