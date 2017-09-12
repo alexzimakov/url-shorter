@@ -6,5 +6,9 @@
     "options": {}
   },
   "salt": "$SALT",
-  "secret": "$SECRET"
+  "secret": "$SECRET",
+  "pagination": {
+    "skip": 0,
+    "limit": 20
+  }
 }
