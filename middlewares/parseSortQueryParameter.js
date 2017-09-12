@@ -1,20 +1,20 @@
-/** @module addSortObjectToRequest */
+/** @module parseSortQueryParameter */
 
 const { respondWithFail } = require('../lib/responseUtils');
 
 
 /**
- * Add sort object to the request object.
+ * Parse `object` query string parameter.
  * 
  * @param {Object} req 
  * @param {Object} res 
  * @param {Function} next 
  * @returns 
  */
-function addSortObjectToRequest(req, res, next) {
+function parseSortQueryParameter(req, res, next) {
   const sortFields = req.query.sort ? req.query.sort.split(',') : [];
 
-  req.sort = {};
+  req.query.sort = {};
   for (let i = 0, length = sortFields.length; i < length; i += 1) {
     let field = sortFields[i];
     let order = 1;
@@ -28,11 +28,11 @@ function addSortObjectToRequest(req, res, next) {
       return respondWithFail(res, `Недопустимое название поля: ${field}`);
     }
 
-    req.sort[field] = order;
+    req.query.sort[field] = order;
   }
 
   return next();
 }
 
 
-module.exports = addSortObjectToRequest;
+module.exports = parseSortQueryParameter;

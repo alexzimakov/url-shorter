@@ -1,12 +1,12 @@
 /** @module middlewares */
 
-const parseWhereQueryParameter = require('./parseWhereQueryParameter');
+const parseFilterQueryParameter = require('./parseFilterQueryParameter');
 const addPaginationObjectToRequest = require('./addPaginationObjectToRequest');
-const addSortObjectToRequest = require('./addSortObjectToRequest');
+const parseSortQueryParameter = require('./parseSortQueryParameter');
 
 
 module.exports = {
-  parseWhereQueryParameter,
+  parseFilterQueryParameter,
   addPaginationObjectToRequest,
-  addSortObjectToRequest,
+  parseSortQueryParameter,
 };
