@@ -1,16 +1,16 @@
-/** @module addPaginationObjectToRequest */
+/** @module parseSkipAndLimitQueryParameters */
 
 const config = require('getconfig');
 
 
 /**
- * Adds pagination object with skip and limit keys to request object.
+ * Parse `skip` and `limit` query string parameters.
  * 
  * @param {Object} req 
  * @param {Object} res 
  * @param {Function} next 
  */
-function addPaginationObjectToRequest(req, res, next) {
+function parseSkipAndLimitQueryParameters(req, res, next) {
   let skip = parseInt(req.query.skip, 10);
   let limit = parseInt(req.query.limit, 10);
 
@@ -22,9 +22,10 @@ function addPaginationObjectToRequest(req, res, next) {
     limit = config.pagination.limit;
   }
 
-  req.pagination = { skip, limit };
+  req.query.skip = skip;
+  req.query.limit = limit;
   next();
 }
 
 
-module.exports = addPaginationObjectToRequest;
+module.exports = parseSkipAndLimitQueryParameters;
