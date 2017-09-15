@@ -13,7 +13,7 @@ const {
   NICKNAME,
   EMAIL,
   PASSWORD_AGAIN,
-} = require('./errorMessages');
+} = require('./errors');
 
 
 module.exports = [

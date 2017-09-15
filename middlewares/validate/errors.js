@@ -1,4 +1,4 @@
-/** @module validate/errorMessages */
+/** @module errors */
 
 exports.EMPTY = 'Это поле не должно быть пустым.';
 exports.MIN_LENTGH = 'Минимальное допустимое количество символов: %d.';
