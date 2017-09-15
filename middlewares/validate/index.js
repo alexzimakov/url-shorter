@@ -1,9 +1,9 @@
 /** @module validate */
 
-const newUser = require('./newUser');
 const general = require('./general');
+const users = require('./users');
 
 module.exports = {
-  newUser,
   general,
+  users,
 };

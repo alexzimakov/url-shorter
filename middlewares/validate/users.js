@@ -1,4 +1,4 @@
-/** @module validate/user */
+/** @module users */
 /* eslint newline-per-chained-call: 0 */
 
 const { check } = require('express-validator/check');
