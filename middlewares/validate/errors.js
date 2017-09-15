@@ -9,3 +9,4 @@ exports.NICKNAME = 'Можно использовать только буквы 
 exports.EMAIL = 'Неверный email адрес.';
 exports.PASSWORD_AGAIN = 'Пароли должны совпадать.';
 exports.MONGO_ID = 'ID должен быть hex-строкой длинной 24 символа.';
+exports.LETTERS_ONLY = 'Можно использовать только буквы и дефис.';
