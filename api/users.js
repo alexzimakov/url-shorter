@@ -8,7 +8,7 @@ const { ObjectID } = require('mongodb');
 const { getInstance } = require('../databaseAdapter');
 const { hashPassword } = require('../lib/cryptoUtils');
 const { validationResult } = require('express-validator/check');
-const { validate } = require('../middlewares');
+const { authenticate, validate } = require('../middlewares');
 const {
   parseFilterQueryParameter,
   parseSkipAndLimitQueryParameters,
@@ -56,6 +56,7 @@ router.all('/users', async (req, res, next) => {
  * Handler for HTTP GET method to `/api/v1/users` route.
  */
 router.get('/users', [
+  authenticate,
   parseFilterQueryParameter,
   parseSkipAndLimitQueryParameters,
   parseSortQueryParameter,
@@ -138,6 +139,7 @@ router.post('/users', validate.users.create, async (req, res) => {
  * Handler for HTTP PUT method to `/api/v1/users` route.
  */
 router.put('/users', [
+  authenticate,
   validate.users.update,
   parseFilterQueryParameter,
 ], async (req, res) => {
@@ -188,6 +190,7 @@ router.put('/users', [
  * Handler for HTTP DELETE method to `/api/v1/users` route.
  */
 router.delete('/users', [
+  authenticate,
   parseFilterQueryParameter,
 ], async (req, res) => {
   try {
@@ -211,6 +214,7 @@ router.delete('/users', [
  * Handler for HTTP GET method to `/api/v1/users/:id` route.
  */
 router.get('/users/:id', [
+  authenticate,
   validate.general.mongoId,
 ], async (req, res) => {
   try {
@@ -251,6 +255,7 @@ router.post('/users/:id', (req, res) => {
  * Handler for HTTP PUT method to `/api/v1/users/:id` route.
  */
 router.put('/users/:id', [
+  authenticate,
   validate.general.mongoId,
   validate.users.update,
 ], async (req, res) => {
@@ -303,6 +308,7 @@ router.put('/users/:id', [
  * Handler for HTTP DELETE method to `/api/v1/users/:id` route.
  */
 router.delete('/users/:id', [
+  authenticate,
   validate.general.mongoId,
 ], async (req, res) => {
   try {
