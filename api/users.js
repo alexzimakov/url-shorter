@@ -1,7 +1,9 @@
 /** @module users */
 
+const config = require('getconfig');
 const express = require('express');
 const _ = require('lodash');
+const jwt = require('jsonwebtoken');
 const { ObjectID } = require('mongodb');
 const { getInstance } = require('../databaseAdapter');
 const { hashPassword } = require('../lib/cryptoUtils');
@@ -115,9 +117,15 @@ router.post('/users', validate.users.create, async (req, res) => {
       throw ApiError('Произошла ошибка при записи пользователя в базу данных.');
     }
 
+    // Create jwt token.
+    const token = jwt.sign({ id: user._id }, config.secret, config.jwt);
+
     respondWithSuccess(
       res,
-      { user: _.omit(user, OMIT_FIELDS) },
+      {
+        authData: { token },
+        user: _.omit(user, OMIT_FIELDS),
+      },
       201,
     );
   } catch (error) {
