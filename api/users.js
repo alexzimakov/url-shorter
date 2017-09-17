@@ -219,7 +219,7 @@ router.delete('/users', [
  */
 router.use('/users/:id', [
   authenticate,
-  authorize('admin'),
+  authorize(['admin', 'author']),
   (req, res, next) => {
     const { role, _id } = req.auth.user;
 
