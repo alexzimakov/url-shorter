@@ -97,7 +97,7 @@ router.post('/users', validate.users.create, async (req, res) => {
     const r = await col.insertOne(user);
 
     if (!_.eq(r.insertedCount, 1)) {
-      throw ApiError('Произошла ошибка при записи пользователя в базу данных.');
+      throw ApiError('Произошла ошибка при сохранении пользователя в базу данных.');
     }
 
     // Create jwt token.
@@ -203,6 +203,10 @@ router.use('/users/:id', [
   (req, res, next) => {
     const { role, _id } = req.auth.user;
 
+    /**
+     * User with role `author` can edit only himself.
+     * But if user has role `staff` he can manage other users.
+     */
     if (_.eq(role, 'author') && !_.eq(_id.toString(), req.params.id)) {
       respondWithError(res, new ApiError('Недостаточно прав.', 403));
     } else {
@@ -289,11 +293,7 @@ router.put('/users/:id', validate.users.update, async (req, res) => {
       throw new ApiError('Произошла ошибка при обновлении пользователя в базе данных.');
     }
 
-    if (_.isNull(r.value)) {
-      throw new ApiError('Пользователь не найден', 404);
-    }
-
-    respondWithSuccess(res, { user: _.omit(r.value, OMITTED_FIELDS) });
+    respondWithSuccess(res, { updatedCount: 1, user: _.omit(r.value, OMITTED_FIELDS) });
   } catch (error) {
     respondWithError(res, error);
   }
@@ -325,11 +325,7 @@ router.delete('/users/:id', async (req, res) => {
       throw new ApiError('При удалении пользователя из базы данных произошла ошибка.');
     }
 
-    if (_.isNull(r.value)) {
-      throw new ApiError('Пользователь не найден.', 404);
-    }
-
-    respondWithSuccess(res);
+    respondWithSuccess(res, { deletedCount: 1 });
   } catch (error) {
     respondWithError(res, error);
   }
