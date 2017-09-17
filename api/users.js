@@ -332,4 +332,36 @@ router.delete('/users/:id', async (req, res) => {
 });
 
 
+/**
+ * Handler for HTTP GET method to `/api/v1/users/:id/links` route.
+ */
+router.get('/users/:id/links', [
+  parseFilterQueryParameter,
+  parseSkipAndLimitQueryParameters,
+  parseSortQueryParameter,
+], async (req, res) => {
+  try {
+    const filter = _.defaults(
+      { author: req.auth.user._id },
+      req.query.filter,
+    );
+    const { skip, limit, sort } = req.query;
+    const db = await getInstance();
+    const col = db.collection('links');
+    const getCount = col.count(filter);
+    const getLinks = col.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .sort(sort)
+      .toArray();
+    const count = await getCount;
+    const links = await getLinks;
+
+    respondWithSuccess(res, { count, links });
+  } catch (error) {
+    respondWithError(res, error);
+  }
+});
+
+
 module.exports = router;
