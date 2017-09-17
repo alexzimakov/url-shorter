@@ -7,6 +7,10 @@
   },
   "salt": "$SALT",
   "secret": "$SECRET",
+  "jwt": {
+    "expiresIn": "32 days",
+    "subject": "auth"
+  },
   "pagination": {
     "skip": 0,
     "limit": 20

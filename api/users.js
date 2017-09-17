@@ -1,12 +1,14 @@
 /** @module users */
 
+const config = require('getconfig');
 const express = require('express');
 const _ = require('lodash');
+const jwt = require('jsonwebtoken');
 const { ObjectID } = require('mongodb');
 const { getInstance } = require('../databaseAdapter');
 const { hashPassword } = require('../lib/cryptoUtils');
 const { validationResult } = require('express-validator/check');
-const { validate } = require('../middlewares');
+const { authenticate, authorize, validate } = require('../middlewares');
 const {
   parseFilterQueryParameter,
   parseSkipAndLimitQueryParameters,
@@ -33,7 +35,7 @@ const OMIT_FIELDS = ['password'];
 /**
  * Middleware for all HTTP methods to `/api/v1/users` route.
  */
-router.all('/users', async (req, res, next) => {
+router.use(async (req, res, next) => {
   try {
     const db = await getInstance();
     const col = db.collection('users');
@@ -54,6 +56,8 @@ router.all('/users', async (req, res, next) => {
  * Handler for HTTP GET method to `/api/v1/users` route.
  */
 router.get('/users', [
+  authenticate,
+  authorize('admin'),
   parseFilterQueryParameter,
   parseSkipAndLimitQueryParameters,
   parseSortQueryParameter,
@@ -103,6 +107,7 @@ router.post('/users', validate.users.create, async (req, res) => {
     // Hashes password.
     user.password = await hashPassword(user.password);
     // Defines service fields.
+    user.role = 'author';
     user.isActive = true;
     user.createdAt = new Date();
     user.updatedAt = new Date();
@@ -115,9 +120,15 @@ router.post('/users', validate.users.create, async (req, res) => {
       throw ApiError('Произошла ошибка при записи пользователя в базу данных.');
     }
 
+    // Create jwt token.
+    const token = jwt.sign({ id: user._id }, config.secret, config.jwt);
+
     respondWithSuccess(
       res,
-      { user: _.omit(user, OMIT_FIELDS) },
+      {
+        authData: { token },
+        user: _.omit(user, OMIT_FIELDS),
+      },
       201,
     );
   } catch (error) {
@@ -130,6 +141,8 @@ router.post('/users', validate.users.create, async (req, res) => {
  * Handler for HTTP PUT method to `/api/v1/users` route.
  */
 router.put('/users', [
+  authenticate,
+  authorize('admin'),
   validate.users.update,
   parseFilterQueryParameter,
 ], async (req, res) => {
@@ -180,6 +193,8 @@ router.put('/users', [
  * Handler for HTTP DELETE method to `/api/v1/users` route.
  */
 router.delete('/users', [
+  authenticate,
+  authorize('admin'),
   parseFilterQueryParameter,
 ], async (req, res) => {
   try {
@@ -200,11 +215,28 @@ router.delete('/users', [
 
 
 /**
+ * Middlewares for all HTTP methods to `/api/v1/users/:id` route.
+ */
+router.use('/users/:id', [
+  authenticate,
+  authorize('admin'),
+  (req, res, next) => {
+    const { role, _id } = req.auth.user;
+
+    if (_.eq(role, 'author') && !_.eq(_id.toString(), req.params.id)) {
+      respondWithError(res, new ApiError('Недостаточно прав.', 403));
+    } else {
+      next();
+    }
+  },
+  validate.general.mongoId,
+]);
+
+
+/**
  * Handler for HTTP GET method to `/api/v1/users/:id` route.
  */
-router.get('/users/:id', [
-  validate.general.mongoId,
-], async (req, res) => {
+router.get('/users/:id', async (req, res) => {
   try {
     // Validates a request id parameter.
     const errors = validationResult(req);
@@ -242,10 +274,7 @@ router.post('/users/:id', (req, res) => {
 /**
  * Handler for HTTP PUT method to `/api/v1/users/:id` route.
  */
-router.put('/users/:id', [
-  validate.general.mongoId,
-  validate.users.update,
-], async (req, res) => {
+router.put('/users/:id', validate.users.update, async (req, res) => {
   try {
     // Validates a request id parameter and request body.
     const errors = validationResult(req);
@@ -294,10 +323,13 @@ router.put('/users/:id', [
 /**
  * Handler for HTTP DELETE method to `/api/v1/users/:id` route.
  */
-router.delete('/users/:id', [
-  validate.general.mongoId,
-], async (req, res) => {
+router.delete('/users/:id', async (req, res) => {
   try {
+    // Validates user permissions.
+    if (_.eq(req.auth.user.role, 'author') && !_.eq(req.auth.user._id.toString(), req.params.id)) {
+      throw new ApiError('Недостаточно прав.', 403);
+    }
+
     // Validates a request id parameter.
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
