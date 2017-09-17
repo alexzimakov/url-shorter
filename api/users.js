@@ -37,7 +37,7 @@ const OMITTED_FIELDS = ['password'];
  */
 router.get('/users', [
   authenticate,
-  authorize('admin'),
+  authorize('staff'),
   parseFilterQueryParameter,
   parseSkipAndLimitQueryParameters,
   parseSortQueryParameter,
@@ -122,7 +122,7 @@ router.post('/users', validate.users.create, async (req, res) => {
  */
 router.put('/users', [
   authenticate,
-  authorize('admin'),
+  authorize('staff'),
   validate.users.update,
   parseFilterQueryParameter,
 ], async (req, res) => {
@@ -174,7 +174,7 @@ router.put('/users', [
  */
 router.delete('/users', [
   authenticate,
-  authorize('admin'),
+  authorize('staff'),
   parseFilterQueryParameter,
 ], async (req, res) => {
   try {
@@ -199,7 +199,7 @@ router.delete('/users', [
  */
 router.use('/users/:id', [
   authenticate,
-  authorize(['admin', 'author']),
+  authorize(['staff', 'author']),
   (req, res, next) => {
     const { role, _id } = req.auth.user;
 

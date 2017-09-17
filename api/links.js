@@ -61,7 +61,7 @@ router.get('/links', [
  */
 router.post('/links', [
   authenticate,
-  authorize(['admin', 'author']),
+  authorize(['staff', 'author']),
   validate.links.create,
 ], async (req, res) => {
   try {
@@ -105,7 +105,7 @@ router.post('/links', [
  */
 router.put('/links', [
   authenticate,
-  authorize(['admin', 'author']),
+  authorize(['staff', 'author']),
   validate.users.update,
   parseFilterQueryParameter,
 ], async (req, res) => {
@@ -153,7 +153,7 @@ router.put('/links', [
  */
 router.delete('/links', [
   authenticate,
-  authorize(['admin', 'author']),
+  authorize(['staff', 'author']),
   parseFilterQueryParameter,
 ], async (req, res) => {
   try {
@@ -208,7 +208,7 @@ router.get('/links/:id', validate.general.mongoId, async (req, res) => {
  */
 router.put('/links/:id', [
   authenticate,
-  authorize(['admin', 'author']),
+  authorize(['staff', 'author']),
   validate.general.mongoId,
   validate.links.update,
 ], async (req, res) => {
@@ -266,7 +266,7 @@ router.put('/links/:id', [
  */
 router.delete('/links/:id', [
   authenticate,
-  authorize(['admin', 'author']),
+  authorize(['staff', 'author']),
   validate.general.mongoId,
 ], async (req, res) => {
   try {
