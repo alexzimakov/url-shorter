@@ -20,7 +20,7 @@ const { respondWithError, respondWithSuccess } = require('../lib/responseUtils')
 
 
 const router = express.Router();
-const ALLOW_FIELDS = [
+const ALLOWED_FIELDS = [
   'username',
   'email',
   'password',
@@ -29,7 +29,7 @@ const ALLOW_FIELDS = [
   'gender',
   'birthDate',
 ];
-const OMIT_FIELDS = ['password'];
+const OMITTED_FIELDS = ['password'];
 
 
 /**
@@ -45,9 +45,9 @@ router.get('/users', [
   try {
     const { filter, skip, limit, sort, fields: queryFields = [] } = req.query;
     const fields = _.isEmpty(queryFields)
-      ? _.reduce(OMIT_FIELDS, (obj, field) => _.assign(obj, { [field]: false }), {})
+      ? _.reduce(OMITTED_FIELDS, (obj, field) => _.assign(obj, { [field]: false }), {})
       : _.reduce(
-        _.difference(queryFields, OMIT_FIELDS),
+        _.difference(queryFields, OMITTED_FIELDS),
         (obj, field) => _.assign(obj, { [field]: true }),
         {},
       );
@@ -79,7 +79,7 @@ router.post('/users', validate.users.create, async (req, res) => {
     }
 
     const user = _.reduce(
-      ALLOW_FIELDS,
+      ALLOWED_FIELDS,
       (obj, field) => _.assign(obj, { [field]: req.body[field] || null }),
       {},
     );
@@ -107,7 +107,7 @@ router.post('/users', validate.users.create, async (req, res) => {
       res,
       {
         authData: { token },
-        user: _.omit(user, OMIT_FIELDS),
+        user: _.omit(user, OMITTED_FIELDS),
       },
       201,
     );
@@ -135,7 +135,7 @@ router.put('/users', [
 
     const { filter } = req.query;
     const update = _.reduce(
-      ALLOW_FIELDS,
+      ALLOWED_FIELDS,
       (obj, field) => (_.has(req.body, field) ? _.assign(obj, { [field]: req.body[field] }) : obj),
       {},
     );
@@ -233,7 +233,7 @@ router.get('/users/:id', async (req, res) => {
       throw new ApiError('Пользователь не найден', 404);
     }
 
-    respondWithSuccess(res, { user: _.omit(doc, OMIT_FIELDS) });
+    respondWithSuccess(res, { user: _.omit(doc, OMITTED_FIELDS) });
   } catch (error) {
     respondWithError(res, error);
   }
@@ -263,7 +263,7 @@ router.put('/users/:id', validate.users.update, async (req, res) => {
     }
 
     const update = _.reduce(
-      ALLOW_FIELDS,
+      ALLOWED_FIELDS,
       (obj, field) => (_.has(req.body, field) ? _.assign(obj, { [field]: req.body[field] }) : obj),
       {},
     );
@@ -293,7 +293,7 @@ router.put('/users/:id', validate.users.update, async (req, res) => {
       throw new ApiError('Пользователь не найден', 404);
     }
 
-    respondWithSuccess(res, { user: _.omit(r.value, OMIT_FIELDS) });
+    respondWithSuccess(res, { user: _.omit(r.value, OMITTED_FIELDS) });
   } catch (error) {
     respondWithError(res, error);
   }
