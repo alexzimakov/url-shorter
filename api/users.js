@@ -33,26 +33,6 @@ const OMIT_FIELDS = ['password'];
 
 
 /**
- * Middleware for all HTTP methods to `/api/v1/users` route.
- */
-router.use(async (req, res, next) => {
-  try {
-    const db = await getInstance();
-    const col = db.collection('users');
-    const usernameIndexExists = await col.indexExists('username_1');
-
-    if (!usernameIndexExists) {
-      await col.createIndex({ username: 1 });
-    }
-
-    next();
-  } catch (error) {
-    respondWithError(res, error);
-  }
-});
-
-
-/**
  * Handler for HTTP GET method to `/api/v1/users` route.
  */
 router.get('/users', [
