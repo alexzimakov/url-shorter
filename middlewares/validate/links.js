@@ -33,5 +33,5 @@ exports.create = _.concat([
 exports.update = _.concat([
   // Validates url.
   check('url').optional()
-    .isURL().withMessage(URL),
+    .not().exists().withMessage('Поле url ссылки неизменяемо.'),
 ], OPTIONAL_VALIDATORS);
