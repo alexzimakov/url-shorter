@@ -24,8 +24,12 @@ async function authenticate(req, res, next) {
   try {
     const authorizationHeader = req.header('Authorization');
 
+    if (_.isNil(authorizationHeader)) {
+      throw new ApiError('Отсутствует аутентификационный заголовок.', 401);
+    }
+
     if (!_.startsWith(authorizationHeader, 'Bearer ')) {
-      throw new ApiError('Authorization Header – неверный формат.', 401);
+      throw new ApiError('Неверный формат аутентификационного заголовка.', 401);
     }
 
     const token = _.replace(authorizationHeader, 'Bearer ', '');
@@ -35,14 +39,14 @@ async function authenticate(req, res, next) {
     const user = await col.findOne({ _id: new ObjectID(payload.id) });
 
     if (_.isNull(user)) {
-      throw new ApiError('Пользователь, ассоциированный с токеном авторизации, не найден.', 401);
+      throw new ApiError('Пользователь, ассоциированный с токеном аутентификации, не найден.', 401);
     }
 
     req.auth = { user };
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
-      respondWithError(res, new ApiError('Недействительный токен авторизации.'), 401);
+      respondWithError(res, new ApiError('Недействительный токен аутентификации.'), 401);
     } else {
       respondWithError(res, error);
     }
