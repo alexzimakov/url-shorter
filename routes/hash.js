@@ -43,7 +43,7 @@ router.get('/:hash', async (req, res) => {
       const clicksToday = _.get(link, `clicks.${date}`, 0);
       const update = {
         $set: {
-          clicks: { [date]: clicksToday + 1 },
+          clicks: _.assign(link.clicks, { [date]: clicksToday + 1 }),
         },
       };
 
