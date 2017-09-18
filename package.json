@@ -21,6 +21,8 @@
     "lodash": "^4.17.4",
     "mongo-sanitize": "^1.0.0",
     "mongodb": "^2.2.31",
+    "nunjucks": "^3.0.1",
+    "serve-static": "^1.12.4",
     "sprintf-js": "^1.1.1",
     "validator": "^8.2.0",
     "winston": "^2.3.1"
