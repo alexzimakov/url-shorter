@@ -13,8 +13,7 @@ const {
   parseSortQueryParameter,
 } = require('../middlewares');
 const { validationResult } = require('express-validator/check');
-const ValidationError = require('../lib/ValidationError');
-const ApiError = require('../lib/ApiError');
+const { ValidationError, ApiError } = require('../lib/errorClasses');
 const { randomHash } = require('../lib/cryptoUtils');
 const { respondWithError, respondWithSuccess } = require('../lib/responseUtils');
 

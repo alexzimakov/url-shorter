@@ -12,8 +12,7 @@ const {
   parseSkipAndLimitQueryParameters,
   parseSortQueryParameter,
 } = require('../middlewares');
-const ValidationError = require('../lib/ValidationError');
-const ApiError = require('../lib/ApiError');
+const { ValidationError, ApiError } = require('../lib/errorClasses');
 const { respondWithError, respondWithSuccess } = require('../lib/responseUtils');
 
 

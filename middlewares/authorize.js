@@ -1,7 +1,7 @@
 /** @module authorize */
 
 const _ = require('lodash');
-const ApiError = require('../lib/ApiError');
+const { ApiError } = require('../lib/errorClasses');
 const { respondWithError } = require('../lib/responseUtils');
 
 
