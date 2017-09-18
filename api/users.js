@@ -1,12 +1,10 @@
 /** @module users */
 
-const config = require('getconfig');
 const express = require('express');
 const _ = require('lodash');
-const jwt = require('jsonwebtoken');
 const { ObjectID } = require('mongodb');
 const { getInstance } = require('../databaseAdapter');
-const { hashPassword } = require('../lib/cryptoUtils');
+const { hashPassword, createToken } = require('../lib/cryptoUtils');
 const { validationResult } = require('express-validator/check');
 const { authenticate, authorize, validate } = require('../middlewares');
 const {
@@ -100,8 +98,7 @@ router.post('/users', validate.users.create, async (req, res) => {
       throw ApiError('Произошла ошибка при сохранении пользователя в базу данных.');
     }
 
-    // Create jwt token.
-    const token = jwt.sign({ id: user._id }, config.secret, config.jwt);
+    const token = await createToken({ _id: user._id });
 
     respondWithSuccess(
       res,
