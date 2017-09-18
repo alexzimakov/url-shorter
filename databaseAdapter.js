@@ -2,9 +2,18 @@
 
 const config = require('getconfig');
 const mongodb = require('mongodb');
+const _ = require('lodash');
 
 
 const MongoClient = mongodb.MongoClient;
+const databaseSchema = {
+  users: {
+    indexes: ['username'],
+  },
+  links: {
+    indexes: ['hash', 'tags'],
+  },
+};
 const databaseAdapter = {};
 
 
@@ -27,6 +36,31 @@ async function connect(url = config.db.url, options = config.db.options) {
   try {
     db = await MongoClient.connect(url, options);
     return db;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+async function initializeDatabase() {
+  try {
+    await connect();
+
+    const cols = _.map(await db.listCollections().toArray(), col => col.name);
+    const createCollections = [];
+
+    _.each(_.keys(databaseSchema), (col) => {
+      if (_.indexOf(cols, col) === -1) {
+        createCollections.push(_.reduce(
+          databaseSchema[col].indexes,
+          (sequence, index) => sequence.then(
+            () => db.collection(col).createIndex({ [index]: 1 }),
+          ),
+          Promise.resolve(db.createCollection(col)),
+        ));
+      }
+    });
+    await Promise.all(createCollections);
   } catch (error) {
     throw error;
   }
@@ -56,8 +90,8 @@ async function getInstance() {
 
 
 Object.defineProperties(databaseAdapter, {
-  connect: {
-    value: connect,
+  initializeDatabase: {
+    value: initializeDatabase,
     enumerable: true,
   },
   disconnect: {
@@ -66,7 +100,7 @@ Object.defineProperties(databaseAdapter, {
   },
   getInstance: {
     value: getInstance,
-    enumerable: getInstance,
+    enumerable: true,
   },
 });
 

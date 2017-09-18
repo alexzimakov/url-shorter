@@ -20,7 +20,7 @@ const { respondWithError, respondWithSuccess } = require('../lib/responseUtils')
 
 
 const router = express.Router();
-const ALLOW_FIELDS = [
+const ALLOWED_FIELDS = [
   'username',
   'email',
   'password',
@@ -29,27 +29,7 @@ const ALLOW_FIELDS = [
   'gender',
   'birthDate',
 ];
-const OMIT_FIELDS = ['password'];
-
-
-/**
- * Middleware for all HTTP methods to `/api/v1/users` route.
- */
-router.use(async (req, res, next) => {
-  try {
-    const db = await getInstance();
-    const col = db.collection('users');
-    const usernameIndexExists = await col.indexExists('username_1');
-
-    if (!usernameIndexExists) {
-      await col.createIndex({ username: 1 });
-    }
-
-    next();
-  } catch (error) {
-    respondWithError(res, error);
-  }
-});
+const OMITTED_FIELDS = ['password'];
 
 
 /**
@@ -57,7 +37,7 @@ router.use(async (req, res, next) => {
  */
 router.get('/users', [
   authenticate,
-  authorize('admin'),
+  authorize('staff'),
   parseFilterQueryParameter,
   parseSkipAndLimitQueryParameters,
   parseSortQueryParameter,
@@ -65,9 +45,9 @@ router.get('/users', [
   try {
     const { filter, skip, limit, sort, fields: queryFields = [] } = req.query;
     const fields = _.isEmpty(queryFields)
-      ? _.reduce(OMIT_FIELDS, (obj, field) => _.assign(obj, { [field]: false }), {})
+      ? _.reduce(OMITTED_FIELDS, (obj, field) => _.assign(obj, { [field]: false }), {})
       : _.reduce(
-        _.difference(queryFields, OMIT_FIELDS),
+        _.difference(queryFields, OMITTED_FIELDS),
         (obj, field) => _.assign(obj, { [field]: true }),
         {},
       );
@@ -99,7 +79,7 @@ router.post('/users', validate.users.create, async (req, res) => {
     }
 
     const user = _.reduce(
-      ALLOW_FIELDS,
+      ALLOWED_FIELDS,
       (obj, field) => _.assign(obj, { [field]: req.body[field] || null }),
       {},
     );
@@ -117,7 +97,7 @@ router.post('/users', validate.users.create, async (req, res) => {
     const r = await col.insertOne(user);
 
     if (!_.eq(r.insertedCount, 1)) {
-      throw ApiError('Произошла ошибка при записи пользователя в базу данных.');
+      throw ApiError('Произошла ошибка при сохранении пользователя в базу данных.');
     }
 
     // Create jwt token.
@@ -127,7 +107,7 @@ router.post('/users', validate.users.create, async (req, res) => {
       res,
       {
         authData: { token },
-        user: _.omit(user, OMIT_FIELDS),
+        user: _.omit(user, OMITTED_FIELDS),
       },
       201,
     );
@@ -142,7 +122,7 @@ router.post('/users', validate.users.create, async (req, res) => {
  */
 router.put('/users', [
   authenticate,
-  authorize('admin'),
+  authorize('staff'),
   validate.users.update,
   parseFilterQueryParameter,
 ], async (req, res) => {
@@ -155,7 +135,7 @@ router.put('/users', [
 
     const { filter } = req.query;
     const update = _.reduce(
-      ALLOW_FIELDS,
+      ALLOWED_FIELDS,
       (obj, field) => (_.has(req.body, field) ? _.assign(obj, { [field]: req.body[field] }) : obj),
       {},
     );
@@ -194,7 +174,7 @@ router.put('/users', [
  */
 router.delete('/users', [
   authenticate,
-  authorize('admin'),
+  authorize('staff'),
   parseFilterQueryParameter,
 ], async (req, res) => {
   try {
@@ -219,10 +199,14 @@ router.delete('/users', [
  */
 router.use('/users/:id', [
   authenticate,
-  authorize('admin'),
+  authorize(['staff', 'author']),
   (req, res, next) => {
     const { role, _id } = req.auth.user;
 
+    /**
+     * User with role `author` can edit only himself.
+     * But if user has role `staff` he can manage other users.
+     */
     if (_.eq(role, 'author') && !_.eq(_id.toString(), req.params.id)) {
       respondWithError(res, new ApiError('Недостаточно прав.', 403));
     } else {
@@ -253,7 +237,7 @@ router.get('/users/:id', async (req, res) => {
       throw new ApiError('Пользователь не найден', 404);
     }
 
-    respondWithSuccess(res, { user: _.omit(doc, OMIT_FIELDS) });
+    respondWithSuccess(res, { user: _.omit(doc, OMITTED_FIELDS) });
   } catch (error) {
     respondWithError(res, error);
   }
@@ -283,7 +267,7 @@ router.put('/users/:id', validate.users.update, async (req, res) => {
     }
 
     const update = _.reduce(
-      ALLOW_FIELDS,
+      ALLOWED_FIELDS,
       (obj, field) => (_.has(req.body, field) ? _.assign(obj, { [field]: req.body[field] }) : obj),
       {},
     );
@@ -309,11 +293,7 @@ router.put('/users/:id', validate.users.update, async (req, res) => {
       throw new ApiError('Произошла ошибка при обновлении пользователя в базе данных.');
     }
 
-    if (_.isNull(r.value)) {
-      throw new ApiError('Пользователь не найден', 404);
-    }
-
-    respondWithSuccess(res, { user: _.omit(r.value, OMIT_FIELDS) });
+    respondWithSuccess(res, { updatedCount: 1, user: _.omit(r.value, OMITTED_FIELDS) });
   } catch (error) {
     respondWithError(res, error);
   }
@@ -345,11 +325,67 @@ router.delete('/users/:id', async (req, res) => {
       throw new ApiError('При удалении пользователя из базы данных произошла ошибка.');
     }
 
-    if (_.isNull(r.value)) {
-      throw new ApiError('Пользователь не найден.', 404);
+    respondWithSuccess(res, { deletedCount: 1 });
+  } catch (error) {
+    respondWithError(res, error);
+  }
+});
+
+
+/**
+ * Handler for HTTP GET method to `/api/v1/users/:id/links` route.
+ */
+router.get('/users/:id/links', [
+  parseFilterQueryParameter,
+  parseSkipAndLimitQueryParameters,
+  parseSortQueryParameter,
+], async (req, res) => {
+  try {
+    const filter = _.defaults(
+      { author: req.auth.user._id },
+      req.query.filter,
+    );
+    const { skip, limit, sort } = req.query;
+    const db = await getInstance();
+    const col = db.collection('links');
+    const getCount = col.count(filter);
+    const getLinks = col.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .sort(sort)
+      .toArray();
+    const count = await getCount;
+    const links = await getLinks;
+
+    respondWithSuccess(res, { count, links });
+  } catch (error) {
+    respondWithError(res, error);
+  }
+});
+
+
+/**
+ * Handler for HTTP GET method to `/api/v1/users/:userId/links/:linkId` route.
+ */
+router.get('/users/:userId/links/:linkId', async (req, res) => {
+  try {
+    const { user } = req.auth;
+    const userObjectId = new ObjectID(req.params.userId);
+    const linkObjectId = new ObjectID(req.params.linkId);
+
+    const db = await getInstance();
+    const col = db.collection('links');
+    const link = await col.findOne({ _id: linkObjectId });
+
+    if (_.isNull(link)) {
+      throw new ApiError('Ссылка не найдена.', 404);
     }
 
-    respondWithSuccess(res);
+    if (!_.isEqual(user._id, link.author, userObjectId)) {
+      throw new ApiError('Недостаточно прав.', 403);
+    }
+
+    respondWithSuccess(res, { link });
   } catch (error) {
     respondWithError(res, error);
   }
