@@ -364,4 +364,32 @@ router.get('/users/:id/links', [
 });
 
 
+/**
+ * Handler for HTTP GET method to `/api/v1/users/:userId/links/:linkId` route.
+ */
+router.get('/users/:userId/links/:linkId', async (req, res) => {
+  try {
+    const { user } = req.auth;
+    const userObjectId = new ObjectID(req.params.userId);
+    const linkObjectId = new ObjectID(req.params.linkId);
+
+    const db = await getInstance();
+    const col = db.collection('links');
+    const link = await col.findOne({ _id: linkObjectId });
+
+    if (_.isNull(link)) {
+      throw new ApiError('Ссылка не найдена.', 404);
+    }
+
+    if (!_.isEqual(user._id, link.author, userObjectId)) {
+      throw new ApiError('Недостаточно прав.', 403);
+    }
+
+    respondWithSuccess(res, { link });
+  } catch (error) {
+    respondWithError(res, error);
+  }
+});
+
+
 module.exports = router;
