@@ -3,16 +3,11 @@
 const express = require('express');
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
+const { ValidationError, ApiError } = require('../lib/errorClasses');
+const { authenticate, authorize, validate, parse } = require('../middlewares');
+const { validationResult } = require('express-validator/check');
 const { getInstance } = require('../databaseAdapter');
 const { hashPassword, createToken } = require('../lib/cryptoUtils');
-const { validationResult } = require('express-validator/check');
-const { authenticate, authorize, validate } = require('../middlewares');
-const {
-  parseFilterQueryParameter,
-  parseSkipAndLimitQueryParameters,
-  parseSortQueryParameter,
-} = require('../middlewares');
-const { ValidationError, ApiError } = require('../lib/errorClasses');
 const { respondWithError, respondWithSuccess } = require('../lib/responseUtils');
 
 
@@ -35,9 +30,9 @@ const OMITTED_FIELDS = ['password'];
 router.get('/users', [
   authenticate,
   authorize('staff'),
-  parseFilterQueryParameter,
-  parseSkipAndLimitQueryParameters,
-  parseSortQueryParameter,
+  parse.query.filter,
+  parse.query.skipAndLimit,
+  parse.query.sort,
 ], async (req, res) => {
   try {
     const { filter, skip, limit, sort, fields: queryFields = [] } = req.query;
@@ -120,7 +115,7 @@ router.put('/users', [
   authenticate,
   authorize('staff'),
   validate.users.update,
-  parseFilterQueryParameter,
+  parse.query.filter,
 ], async (req, res) => {
   try {
     // Validates a request id parameter and request body.
@@ -171,7 +166,7 @@ router.put('/users', [
 router.delete('/users', [
   authenticate,
   authorize('staff'),
-  parseFilterQueryParameter,
+  parse.query.filter,
 ], async (req, res) => {
   try {
     const { filter } = req.query;
@@ -332,9 +327,9 @@ router.delete('/users/:id', async (req, res) => {
  * Handler for HTTP GET method to `/api/v1/users/:id/links` route.
  */
 router.get('/users/:id/links', [
-  parseFilterQueryParameter,
-  parseSkipAndLimitQueryParameters,
-  parseSortQueryParameter,
+  parse.query.filter,
+  parse.query.skipAndLimit,
+  parse.query.sort,
 ], async (req, res) => {
   try {
     const filter = _.defaults(

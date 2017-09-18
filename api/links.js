@@ -3,17 +3,10 @@
 const express = require('express');
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
-const { getInstance } = require('../databaseAdapter');
-const {
-  authenticate,
-  authorize,
-  validate,
-  parseFilterQueryParameter,
-  parseSkipAndLimitQueryParameters,
-  parseSortQueryParameter,
-} = require('../middlewares');
-const { validationResult } = require('express-validator/check');
 const { ValidationError, ApiError } = require('../lib/errorClasses');
+const { authenticate, authorize, validate, parse } = require('../middlewares');
+const { validationResult } = require('express-validator/check');
+const { getInstance } = require('../databaseAdapter');
 const { randomHash } = require('../lib/cryptoUtils');
 const { respondWithError, respondWithSuccess } = require('../lib/responseUtils');
 
@@ -26,9 +19,9 @@ const OMITTED_FIELDS = ['clicks', 'author'];
  * Handler for HTTP GET method to `/api/v1/links` route.
  */
 router.get('/links', [
-  parseFilterQueryParameter,
-  parseSkipAndLimitQueryParameters,
-  parseSortQueryParameter,
+  parse.query.filter,
+  parse.query.skipAndLimit,
+  parse.query.sort,
 ], async (req, res) => {
   try {
     const { filter, skip, limit, sort } = req.query;
@@ -106,7 +99,7 @@ router.put('/links', [
   authenticate,
   authorize(['staff', 'author']),
   validate.users.update,
-  parseFilterQueryParameter,
+  parse.query.filter,
 ], async (req, res) => {
   try {
     // Validates a request id parameter and request body.
@@ -153,7 +146,7 @@ router.put('/links', [
 router.delete('/links', [
   authenticate,
   authorize(['staff', 'author']),
-  parseFilterQueryParameter,
+  parse.query.filter,
 ], async (req, res) => {
   try {
     const { user } = req.auth;
