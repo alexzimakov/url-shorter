@@ -90,6 +90,10 @@ async function getInstance() {
 
 
 Object.defineProperties(databaseAdapter, {
+  connect: {
+    value: connect,
+    enumerable: true,
+  },
   initializeDatabase: {
     value: initializeDatabase,
     enumerable: true,

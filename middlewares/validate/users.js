@@ -43,7 +43,7 @@ exports.create = _.concat([
   check('username')
     .not().isEmpty().withMessage(EMPTY)
     .isLength({ min: 3 }).withMessage(sprintf(MIN_LENTGH, 3))
-    .matches({ pattern: /^[A-Za-z0-9_-]{3,16}$/ }).withMessage(NICKNAME)
+    .matches(/^[A-Za-z0-9_-]{3,16}$/).withMessage(NICKNAME)
     .custom(isValueExists('users', 'username')).withMessage('Пользователь с таким логином уже существует.'),
 
   // Validate email.
@@ -68,7 +68,7 @@ exports.update = _.concat([
   // Validate username.
   check('username').optional()
     .isLength({ min: 3 }).withMessage(sprintf(MIN_LENTGH, 3))
-    .matches({ pattern: /^[A-Za-z0-9_-]{3,16}$/ }).withMessage(NICKNAME)
+    .matches(/^[A-Za-z0-9_-]{3,16}$/).withMessage(NICKNAME)
     .custom(isValueExists('users', 'username')).withMessage('Пользователь с таким логином уже существует.'),
 
   // Validate email.
