@@ -1,9 +1,12 @@
 /** @module app */
 
+const config = require('getconfig');
 const express = require('express');
 const bodyParser = require('body-parser');
 const nunjucks = require('nunjucks');
+const morgan = require('morgan');
 const serveStatic = require('serve-static');
+const middlewares = require('./middlewares');
 const api = require('./api');
 const services = require('./services');
 const routes = require('./routes');
@@ -15,6 +18,8 @@ nunjucks.configure('views', {
   express: app,
 });
 
+app.use(morgan(config.env === 'dev' ? 'dev' : 'short'));
+app.use(middlewares.allowCrossDomain);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(serveStatic('public'));
