@@ -38,8 +38,8 @@ router.post('/login', validate.services.login, async (req, res) => {
     respondWithSuccess(res, {
       authData: {
         token,
-        user: _.omit(user, ['password']),
       },
+      user: _.omit(user, ['password']),
     });
   } catch (error) {
     respondWithError(res, error);
