@@ -14,5 +14,10 @@
   "pagination": {
     "skip": 0,
     "limit": 20
+  },
+  "crypto": {
+    "iterations": 100000,
+    "keylen": 128,
+    "algorithm": "sha512"
   }
 }
