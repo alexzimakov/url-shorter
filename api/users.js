@@ -92,7 +92,7 @@ router.post('/users', validate.users.create, async (req, res) => {
       throw ApiError('Произошла ошибка при сохранении пользователя в базу данных.');
     }
 
-    const token = await createToken({ _id: user._id });
+    const token = await createToken({ id: user._id });
 
     respondWithSuccess(
       res,
