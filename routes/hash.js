@@ -38,7 +38,12 @@ router.get('/:hash', async (req, res) => {
   } finally {
     if (!_.isNull(col) && !_.isNull(link)) {
       const now = new Date();
-      const date = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+      const year = now.getFullYear();
+      let month = now.getMonth();
+      month = month > 8 ? month + 1 : `0${month + 1}`;
+      let day = now.getDate();
+      day = day > 9 ? day : `0${day}`;
+      const date = `${year}-${month}-${day}`;
 
       const clicksToday = _.get(link, `clicks.${date}`, 0);
       const update = {
