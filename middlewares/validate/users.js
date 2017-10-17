@@ -5,7 +5,7 @@ const _ = require('lodash');
 const { check } = require('express-validator/check');
 const {
   isPasswordsMatch,
-  isValueExists,
+  isUserExists,
   isLettersOnly,
 } = require('../../lib/validators');
 const { sprintf } = require('sprintf-js');
@@ -44,13 +44,13 @@ exports.create = _.concat([
     .not().isEmpty().withMessage(EMPTY)
     .isLength({ min: 3 }).withMessage(sprintf(MIN_LENTGH, 3))
     .matches(/^[A-Za-z0-9_-]{3,16}$/).withMessage(NICKNAME)
-    .custom(isValueExists('users', 'username')).withMessage('Пользователь с таким логином уже существует.'),
+    .custom(isUserExists('username')).withMessage('Пользователь с таким логином уже существует.'),
 
   // Validate email.
   check('email')
     .not().isEmpty().withMessage(EMPTY)
     .isEmail().withMessage(EMAIL)
-    .custom(isValueExists('users', 'email')).withMessage('Пользователь с таким email адресом уже существует.'),
+    .custom(isUserExists('email')).withMessage('Пользователь с таким email адресом уже существует.'),
 
   // Validate password.
   check('password')
@@ -69,12 +69,12 @@ exports.update = _.concat([
   check('username').optional()
     .isLength({ min: 3 }).withMessage(sprintf(MIN_LENTGH, 3))
     .matches(/^[A-Za-z0-9_-]{3,16}$/).withMessage(NICKNAME)
-    .custom(isValueExists('users', 'username')).withMessage('Пользователь с таким логином уже существует.'),
+    .custom(isUserExists('username')).withMessage('Пользователь с таким логином уже существует.'),
 
   // Validate email.
   check('email').optional()
     .isEmail().withMessage(EMAIL)
-    .custom(isValueExists('users', 'email')).withMessage('Пользователь с таким email адресом уже существует.'),
+    .custom(isUserExists('email')).withMessage('Пользователь с таким email адресом уже существует.'),
 
   // Validate password.
   check('password').optional()
