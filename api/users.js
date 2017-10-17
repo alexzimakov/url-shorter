@@ -5,6 +5,8 @@ const _ = require('lodash');
 const { ObjectID } = require('mongodb');
 const { ValidationError, ApiError } = require('../lib/errorClasses');
 const { authenticate, authorize, validate, parse } = require('../middlewares');
+const Group = require('../models/Group');
+const User = require('../models/User');
 const { validationResult } = require('express-validator/check');
 const { getInstance } = require('../databaseAdapter');
 const { hashPassword, createToken } = require('../lib/cryptoUtils');
@@ -28,29 +30,14 @@ const OMITTED_FIELDS = ['password'];
  * Handler for HTTP GET method to `/api/v1/users` route.
  */
 router.get('/users', [
-  authenticate,
-  authorize('staff'),
   parse.query.filter,
   parse.query.skipAndLimit,
   parse.query.sort,
 ], async (req, res) => {
   try {
-    const { filter, skip, limit, sort, fields: queryFields = [] } = req.query;
-    const fields = _.isEmpty(queryFields)
-      ? _.reduce(OMITTED_FIELDS, (obj, field) => _.assign(obj, { [field]: false }), {})
-      : _.reduce(
-        _.difference(queryFields, OMITTED_FIELDS),
-        (obj, field) => _.assign(obj, { [field]: true }),
-        {},
-      );
-    const db = await getInstance();
-    const col = db.collection('users');
-    const count = await col.count(filter);
-    const users = await col.find(filter, fields)
-      .skip(skip)
-      .limit(limit)
-      .sort(sort)
-      .toArray();
+    const { filter, skip, limit, sort } = req.query;
+    const count = await User.count(filter);
+    const users = await User.values({ filter, skip, limit, sort });
 
     respondWithSuccess(res, { total: count, users });
   } catch (error) {
@@ -64,33 +51,20 @@ router.get('/users', [
  */
 router.post('/users', validate.users.create, async (req, res) => {
   try {
-    // Validates a request body.
     const errors = validationResult(req);
+
     if (!errors.isEmpty()) {
       throw new ValidationError(errors);
     }
 
-    const user = _.reduce(
-      ALLOWED_FIELDS,
-      (obj, field) => _.assign(obj, { [field]: req.body[field] || null }),
-      {},
-    );
+    const user = new User({
+      username: req.body.username,
+      email: req.body.email,
+      password: req.body.password,
+    });
 
-    // Hashes password.
-    user.password = await hashPassword(user.password);
-    // Defines service fields.
-    user.role = 'author';
-    user.isActive = true;
-    user.createdAt = new Date();
-    user.updatedAt = new Date();
-
-    const db = await getInstance();
-    const col = db.collection('users');
-    const r = await col.insertOne(user);
-
-    if (!_.eq(r.insertedCount, 1)) {
-      throw ApiError('Произошла ошибка при сохранении пользователя в базу данных.');
-    }
+    await user.save();
+    await Group.addUserToDefaultGroup(user);
 
     const token = await createToken({ id: user._id });
 
@@ -98,7 +72,7 @@ router.post('/users', validate.users.create, async (req, res) => {
       res,
       {
         authData: { token },
-        user: _.omit(user, OMITTED_FIELDS),
+        user: user.toJson(),
       },
       201,
     );
