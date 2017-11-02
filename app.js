@@ -4,8 +4,8 @@ const config = require('getconfig');
 const express = require('express');
 const bodyParser = require('body-parser');
 const nunjucks = require('nunjucks');
-const morgan = require('morgan');
 const serveStatic = require('serve-static');
+const winston = require('winston');
 const middlewares = require('./middlewares');
 const api = require('./api');
 const services = require('./services');
@@ -18,7 +18,13 @@ nunjucks.configure('views', {
   express: app,
 });
 
-app.use(morgan(config.env === 'dev' ? 'dev' : 'short'));
+if (config.env === 'development') {
+  app.use((req, res, next) => {
+    winston.info('%s %s', req.method, req.originalUrl);
+    next();
+  });
+}
+
 app.use(middlewares.allowCrossDomain);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
