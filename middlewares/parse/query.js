@@ -4,7 +4,7 @@ const config = require('getconfig');
 const sanitize = require('mongo-sanitize');
 const escapeStringRegexp = require('escape-string-regexp');
 const { ApiError } = require('../../lib/errorClasses');
-const { respondWithError } = require('../../lib/responseUtils');
+const { respondWithError } = require('../../lib/response-utils');
 
 
 /**

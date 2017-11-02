@@ -8,7 +8,7 @@ const { authenticate, authorize, validate, parse } = require('../middlewares');
 const { validationResult } = require('express-validator/check');
 const { getInstance } = require('../databaseAdapter');
 const { randomHash } = require('../lib/cryptoUtils');
-const { respondWithError, respondWithSuccess } = require('../lib/responseUtils');
+const { respondWithError, respondWithSuccess } = require('../lib/response-utils');
 
 const router = express.Router();
 const ALLOWED_FIELDS = ['url', 'tags', 'description'];

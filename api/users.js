@@ -10,7 +10,7 @@ const User = require('../models/User');
 const { validationResult } = require('express-validator/check');
 const { getInstance } = require('../databaseAdapter');
 const { hashPassword, createToken } = require('../lib/cryptoUtils');
-const { respondWithError, respondWithSuccess } = require('../lib/responseUtils');
+const { respondWithError, respondWithSuccess } = require('../lib/response-utils');
 
 
 const router = express.Router();

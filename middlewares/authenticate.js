@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const { ObjectID } = require('mongodb');
 const { getInstance } = require('../databaseAdapter');
 const { ApiError } = require('../lib/errorClasses');
-const { respondWithError } = require('../lib/responseUtils');
+const { respondWithError } = require('../lib/response-utils');
 
 
 /**

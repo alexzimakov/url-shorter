@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const { ApiError } = require('../lib/errorClasses');
-const { respondWithError } = require('../lib/responseUtils');
+const { respondWithError } = require('../lib/response-utils');
 
 
 /**

@@ -6,7 +6,7 @@ const { ValidationError, ApiError } = require('../lib/errorClasses');
 const { getInstance } = require('../databaseAdapter');
 const { validate } = require('../middlewares');
 const { validationResult } = require('express-validator/check');
-const { respondWithError, respondWithSuccess } = require('../lib/responseUtils');
+const { respondWithError, respondWithSuccess } = require('../lib/response-utils');
 const { comparePasswords, createToken } = require('../lib/cryptoUtils');
 
 const router = express.Router();

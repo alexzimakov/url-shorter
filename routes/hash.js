@@ -6,7 +6,7 @@ const winston = require('winston');
 const { ObjectID } = require('mongodb');
 const { ResponseError } = require('../lib/errorClasses');
 const { getInstance } = require('../databaseAdapter');
-const { respondWithError } = require('../lib/responseUtils');
+const { respondWithError } = require('../lib/response-utils');
 
 const router = express.Router();
 
