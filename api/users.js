@@ -3,7 +3,7 @@
 const express = require('express');
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
-const { ValidationError, ApiError } = require('../lib/errorClasses');
+const { ValidationError, ApiError } = require('../lib/error-classes');
 const { authenticate, authorize, validate, parse } = require('../middlewares');
 const Group = require('../models/Group');
 const User = require('../models/User');

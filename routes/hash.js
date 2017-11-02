@@ -4,7 +4,7 @@ const express = require('express');
 const _ = require('lodash');
 const winston = require('winston');
 const { ObjectID } = require('mongodb');
-const { ResponseError } = require('../lib/errorClasses');
+const { ResponseError } = require('../lib/error-classes');
 const { getInstance } = require('../databaseAdapter');
 const { respondWithError } = require('../lib/response-utils');
 

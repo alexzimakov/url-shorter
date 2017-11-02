@@ -2,7 +2,7 @@
 
 const express = require('express');
 const _ = require('lodash');
-const { ValidationError, ApiError } = require('../lib/errorClasses');
+const { ValidationError, ApiError } = require('../lib/error-classes');
 const { getInstance } = require('../databaseAdapter');
 const { validate } = require('../middlewares');
 const { validationResult } = require('express-validator/check');

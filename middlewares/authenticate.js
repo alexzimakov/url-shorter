@@ -5,7 +5,7 @@ const _ = require('lodash');
 const jwt = require('jsonwebtoken');
 const { ObjectID } = require('mongodb');
 const { getInstance } = require('../databaseAdapter');
-const { ApiError } = require('../lib/errorClasses');
+const { ApiError } = require('../lib/error-classes');
 const { respondWithError } = require('../lib/response-utils');
 
 
