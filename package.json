@@ -9,8 +9,7 @@
   "scripts": {
     "start": "node server.js",
     "development": "export NODE_ENV=development && nodemon server.js",
-    "test": "export NODE_ENV=test && mocha --recursive",
-    "coverage": "export NODE_ENV=test && jest --coverage"
+    "test": "export NODE_ENV=test && mocha --recursive"
   },
   "author": "Alexander Zimakov",
   "license": "MIT",
@@ -39,7 +38,6 @@
     "eslint-plugin-import": "^2.7.0",
     "mocha": "^4.0.1",
     "nodemon": "^1.11.0",
-    "sinon": "^4.0.2",
-    "supertest": "^3.0.0"
+    "sinon": "^4.0.2"
   }
 }
