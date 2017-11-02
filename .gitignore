@@ -1,6 +1,9 @@
 # System
 .DS_Store
 
+# IDE
+.idea
+
 # Configuration
 config/development.json
 config/test.json
