@@ -9,7 +9,7 @@ const Group = require('../models/Group');
 const User = require('../models/User');
 const { validationResult } = require('express-validator/check');
 const { getInstance } = require('../databaseAdapter');
-const { hashPassword, createToken } = require('../lib/cryptoUtils');
+const { hashPassword, createToken } = require('../lib/crypto-utils');
 const { respondWithError, respondWithSuccess } = require('../lib/response-utils');
 
 

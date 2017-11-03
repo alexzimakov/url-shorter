@@ -1,7 +1,7 @@
 /** @module User */
 
 const Base = require('./Base');
-const { hashPassword } = require('../lib/cryptoUtils');
+const { hashPassword } = require('../lib/crypto-utils');
 
 
 /**

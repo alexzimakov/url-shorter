@@ -8,6 +8,7 @@ const { authenticate, authorize, validate, parse } = require('../middlewares');
 const { validationResult } = require('express-validator/check');
 const { getInstance } = require('../databaseAdapter');
 const { randomHash } = require('../lib/cryptoUtils');
+const { randomHash } = require('../lib/crypto-utils');
 const { respondWithError, respondWithSuccess } = require('../lib/response-utils');
 
 const router = express.Router();
