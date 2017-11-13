@@ -1,38 +1,21 @@
 /** @module authorize */
 
-const _ = require('lodash');
-const { ApiError } = require('../lib/errorClasses');
-const { respondWithError } = require('../lib/responseUtils');
+const { ApiError } = require('../lib/error-classes');
 
 
 /**
- * Checks permissions for role.
- * 
- * @param {String|Array} roles 
- * @returns 
+ *
+ * @param permissions
+ * @returns {Function}
  */
-function authorize(roles) {
+function authorize(...permissions) {
   return (req, res, next) => {
-    const { user } = req.auth;
-    let notAllowed = true;
+    const allowed = req.user.hasPermission(permissions);
 
-    if (_.isArray(roles)) {
-      for (let i = 0, length = roles.length; i < length; i += 1) {
-        if (_.eq(user.role, roles[i])) {
-          notAllowed = false;
-          break;
-        }
-      }
-    }
-
-    if (_.isString(roles) && _.eq(user.role, roles)) {
-      notAllowed = false;
-    }
-
-    if (notAllowed) {
-      respondWithError(res, new ApiError('Недостаточно прав.', 403));
-    } else {
+    if (allowed) {
       next();
+    } else {
+      next(new ApiError('Недостаточно прав.', 403));
     }
   };
 }

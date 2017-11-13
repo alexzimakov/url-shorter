@@ -2,19 +2,20 @@
   "name": "urlshorter",
   "version": "0.0.0",
   "engines": {
-    "node": "8.5.0"
+    "node": "^8.5.0"
   },
   "description": "The url shorter test project",
   "main": "app.js",
   "scripts": {
     "start": "node server.js",
     "development": "export NODE_ENV=development && nodemon server.js",
-    "test": "export NODE_ENV=test && jest --watch",
-    "coverage": "export NODE_ENV=test && jest --coverage"
+    "test": "export NODE_ENV=test && mocha --recursive",
+    "coverage": "nyc --reporter=lcov yarn test && open coverage/lcov-report/*.html"
   },
   "author": "Alexander Zimakov",
   "license": "MIT",
   "dependencies": {
+    "async-validator": "^1.8.1",
     "body-parser": "^1.18.1",
     "escape-string-regexp": "^1.0.5",
     "express": "^4.15.4",
@@ -24,19 +25,21 @@
     "lodash": "^4.17.4",
     "mongo-sanitize": "^1.0.0",
     "mongodb": "^2.2.31",
-    "morgan": "^1.8.2",
     "nunjucks": "^3.0.1",
+    "pluralize": "^7.0.0",
     "serve-static": "^1.12.4",
     "sprintf-js": "^1.1.1",
     "validator": "^8.2.0",
     "winston": "^2.3.1"
   },
   "devDependencies": {
+    "chai": "^4.1.2",
     "eslint": "^4.6.1",
     "eslint-config-airbnb-base": "^11.3.2",
     "eslint-plugin-import": "^2.7.0",
-    "jest": "^20.0.4",
+    "mocha": "^4.0.1",
     "nodemon": "^1.11.0",
-    "supertest": "^3.0.0"
+    "nyc": "^11.3.0",
+    "sinon": "^4.0.2"
   }
 }

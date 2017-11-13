@@ -1,17 +1,15 @@
 /** @module authenticate */
 
-const config = require('getconfig');
-const _ = require('lodash');
-const jwt = require('jsonwebtoken');
-const { ObjectID } = require('mongodb');
-const { getInstance } = require('../databaseAdapter');
-const { ApiError } = require('../lib/errorClasses');
-const { respondWithError } = require('../lib/responseUtils');
+const User = require('../models/user');
+const GuestUser = require('../models/guest-user');
+const { ApiError } = require('../lib/error-classes');
+const { isValidAuthorizationHeader } = require('../lib/validators');
+const { verifyToken } = require('../lib/crypto-utils');
 
 
 /**
  * Checks jwt token stored at Authorization header.
- * If token is valid, calls a callback function and extends `req` object with auth data.
+ * If token is valid, calls a callback function and extends `req` object with user object.
  * In case of token is not valid or user associated with token not exists,
  * then finishes request with error.
  * 
@@ -24,31 +22,36 @@ async function authenticate(req, res, next) {
   try {
     const authorizationHeader = req.header('Authorization');
 
-    if (_.isNil(authorizationHeader)) {
-      throw new ApiError('Отсутствует аутентификационный заголовок.', 401);
-    }
-
-    if (!_.startsWith(authorizationHeader, 'Bearer ')) {
-      throw new ApiError('Неверный формат аутентификационного заголовка.', 401);
-    }
-
-    const token = _.replace(authorizationHeader, 'Bearer ', '');
-    const payload = jwt.verify(token, config.secret, config.jwt);
-    const db = await getInstance();
-    const col = db.collection('users');
-    const user = await col.findOne({ _id: new ObjectID(payload.id) });
-
-    if (_.isNull(user)) {
-      throw new ApiError('Пользователь, ассоциированный с токеном аутентификации, не найден.', 401);
-    }
-
-    req.auth = { user };
-    next();
-  } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      respondWithError(res, new ApiError('Недействительный токен аутентификации.'), 401);
+    if (!authorizationHeader) {
+      req.user = new GuestUser();
+      next();
+    } else if (!isValidAuthorizationHeader(authorizationHeader)) {
+      next(new ApiError('Неверный формат аутентификационного заголовка.', 401));
     } else {
-      respondWithError(res, error);
+      const token = authorizationHeader.replace(/^Bearer /, '');
+      const payload = await verifyToken(token);
+      const user = await User.findById(payload.id);
+
+      if (user === null) {
+        next(new ApiError('Пользователь, ассоциированный с токеном аутентификации, не найден.', 401));
+      } else {
+        req.user = user;
+        next();
+      }
+    }
+  } catch (error) {
+    switch (error.name) {
+      case 'TokenExpiredError':
+        next(new ApiError('Истёк срок действия токена аутентификации.', 401));
+        break;
+
+      case 'JsonWebTokenError':
+        next(new ApiError('Недействительный токен аутентификации.', 401));
+        break;
+
+      default:
+        next(error);
+        break;
     }
   }
 }
