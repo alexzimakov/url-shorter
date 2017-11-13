@@ -1,113 +1,233 @@
 /** @module User */
 
-const Base = require('./Base');
+const config = require('getconfig');
+const jwt = require('jsonwebtoken');
+const { get, isEqual } = require('lodash');
+const AbstractModel = require('./abstract-model');
 const { hashPassword } = require('../lib/crypto-utils');
 
 
 /**
  * Creates a new User model instance.
- * If arguments wasn't given, sets properties to default values.
- * If arguments it is a js object, property values sets from the given object.
- * _acl property by default has read and write permissions for that user.
- * 
- * @class User
- * @extends {Base}
+ *
+ * @class
+ * @augments AbstractModel
  */
-class User extends Base {
-  /**
-   * Returns object which contains model fields definitions.
-   * 
-   * @readonly
-   * @static
-   * @memberof User
-   */
-  static get fields() {
+class User extends AbstractModel {
+  static get schema() {
     return {
-      ...super.fields,
-      _acl: {
-        type: Object,
-        default(instance) {
-          return {
-            [instance._id]: {
-              w: true,
-              r: true,
-            },
-          };
-        },
+      group: {
+        type: 'enum',
+        enum: this.groups,
+        default: this.groups[1],
       },
       username: {
-        type: String,
+        type: 'string',
+        index: true,
+        default: '',
+        required: true,
+        pattern: /^[a-z0-9_-]+$/i,
+      },
+      email: {
+        type: 'email',
+        required: true,
+      },
+      password: {
+        type: 'string',
+        required: true,
+        range: {
+          min: 8,
+        },
+      },
+      firstName: {
+        type: 'string',
         index: true,
       },
-      email: String,
-      password: String,
-      firstName: String,
-      lastName: String,
-      birthDate: Date,
-      gender: String,
+      lastName: {
+        type: 'string',
+      },
+      birthDate: {
+        type: 'date',
+      },
+      gender: {
+        type: 'enum',
+        enum: ['male', 'female'],
+      },
       isActive: {
-        type: Boolean,
+        type: 'boolean',
         default: true,
       },
     };
   }
 
 
-  /**
-   * Sets a new password for user which is presented by model instance.
-   * 
-   * @param {String} password – Raw password.
-   * @returns {Promise}
-   * @memberof User
-   */
-  async setPassword(password) {
-    const hashedPassword = await hashPassword(password || this.password);
-    Object.assign(this, { password: hashedPassword });
+  static get groups() {
+    return ['admin', 'user', 'guest'];
+  }
+
+
+  static get permissions() {
+    const [admin, user, guest] = this.groups;
+    return {
+      [admin]: {
+        users: {
+          create: true,
+          view: true,
+          edit: true,
+          delete: true,
+        },
+        links: {
+          create: true,
+          view: true,
+          edit: true,
+          delete: true,
+        },
+      },
+      [user]: {
+        users: {
+          self: {
+            view: true,
+            edit: true,
+            delete: true,
+          },
+        },
+        links: {
+          create: true,
+          view: true,
+          edit: true,
+          delete: true,
+        },
+      },
+      [guest]: {
+        links: {
+          view: true,
+        },
+      },
+    };
   }
 
 
   /**
-   * Saves a user to database.
-   * Calls this.setPassword before saving.
-   * 
-   * @returns {Promise}
-   * @memberof User
-   * @override
+   * Checks if passed users is the same.
+   *
+   * @param {User} user1
+   * @param {User} user2
+   * @returns {Boolean}
    */
+  static isEqual(user1, user2) {
+    return isEqual(user1._id, user2._id);
+  }
+
+
+  static async updateAll({
+    filter = {},
+    update = {},
+  } = {}) {
+    if ('password' in update) {
+      const hashedPassword = await hashPassword(update.password);
+      await super.updateAll({
+        filter,
+        update: Object.assign(update, { password: hashedPassword }),
+      });
+    } else {
+      await super.updateAll({ filter, update });
+    }
+  }
+
+
+  get isAdmin() {
+    return this.group === this.constructor.groups[0];
+  }
+
+
+  get isUser() {
+    return this.group === this.constructor.groups[1];
+  }
+
+
+  get isGuest() {
+    return this.group === this.constructor.groups[2];
+  }
+
+
+  /**
+   * Returns true if user has at least one permission from a given permissions list.
+   *
+   * @param {Array} permissions
+   * @returns {Boolean}
+   */
+  hasPermission(permissions = []) {
+    return permissions.some(
+      permission => get(this.constructor.permissions, `${this.group}.${permission}`, false),
+    );
+  }
+
+
+  /**
+   * Creates and returns new jwt token for user using user id.
+   *
+   * @returns {Promise}
+   */
+  async generateJwtToken() {
+    return new Promise((resolve, reject) => {
+      jwt.sign({ id: this._id }, config.secret, config.jwt, (error, token) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(token);
+        }
+      });
+    });
+  }
+
+
+  /**
+   * Checks if a submitted password is correct.
+   *
+   * @param {String} password
+   * @returns {Promise.<Boolean>}
+   */
+  async checkPassword(password) {
+    const hashedSubmittedPassword = await hashPassword(password);
+    return this.password === hashedSubmittedPassword;
+  }
+
+
+  /**
+   * Hashes password if password was modified.
+   *
+   * @returns {Promise.<void>}
+   */
+  async encryptPassword() {
+    const passwordModified = await this.isModified('password');
+
+    if (passwordModified) {
+      this.password = await hashPassword(this.password);
+    }
+  }
+
+
   async save() {
-    await this.setPassword();
+    await this.encryptPassword();
     await super.save();
   }
 
 
-  /**
-   * Updates an user data in database.
-   * 
-   * @returns {Promise}
-   * @memberof User
-   * @override
-   */
-  async update(update) {
-    const updateWithoutPassword = Object.assign({}, update);
+  async update(update = {}) {
+    if ('password' in update) {
+      this.password = update.password;
+    }
 
-    delete updateWithoutPassword.password;
-    delete this.password;
-    await super.update(updateWithoutPassword);
+    await this.encryptPassword();
+    await super.update(update);
   }
 
 
-  /**
-   * Returns an object version of the User model instance.
-   * 
-   * @returns {Object}
-   * @memberof User
-   * @override
-   */
   toObject() {
-    const target = super.toObject();
+    const object = super.toObject();
 
-    delete target.password;
-    return target;
+    delete object.password;
+    return object;
   }
 }
 
