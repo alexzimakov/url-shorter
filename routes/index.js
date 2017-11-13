@@ -1,7 +1,7 @@
 /** @module routes */
 
 const express = require('express');
-const hash = require('./hash');
+const hash = require('./redirect');
 
 const router = express.Router();
 router.use(hash);

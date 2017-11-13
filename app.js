@@ -32,7 +32,8 @@ app.use(serveStatic('public'));
 app.use('/services', services);
 app.use('/api/v1', api);
 app.use(routes);
-app.use('/', (req, res) => res.send('url-shorter api server'));
+app.use('*', (req, res) => res.send('url-shorter api server'));
+app.use(middlewares.handleErrors);
 
 
 module.exports = app;

@@ -9,11 +9,13 @@
   "scripts": {
     "start": "node server.js",
     "development": "export NODE_ENV=development && nodemon server.js",
-    "test": "export NODE_ENV=test && mocha --recursive"
+    "test": "export NODE_ENV=test && mocha --recursive",
+    "coverage": "nyc --reporter=lcov yarn test && open coverage/lcov-report/*.html"
   },
   "author": "Alexander Zimakov",
   "license": "MIT",
   "dependencies": {
+    "async-validator": "^1.8.1",
     "body-parser": "^1.18.1",
     "escape-string-regexp": "^1.0.5",
     "express": "^4.15.4",
@@ -37,6 +39,7 @@
     "eslint-plugin-import": "^2.7.0",
     "mocha": "^4.0.1",
     "nodemon": "^1.11.0",
+    "nyc": "^11.3.0",
     "sinon": "^4.0.2"
   }
 }

@@ -1,17 +1,19 @@
-/** @module responseUtils */
+/** @module handleErrors */
 
-const winston = require('winston');
-const { ValidationError, ApiError, ResponseError } = require('./error-classes');
+const { ValidationError, ApiError, ResponseError } = require('../lib/error-classes');
+
 
 /**
- * Generic error handler used by all api endpoints.
- * 
- * @param {Object} res – Express response object.
- * @param {Object} error – response payload.
- * @param {number} [code=500] 
+ * Middleware for handling errors.
+ *
+ * @param {Object} error
+ * @param {Object} req
+ * @param {Object} res
+ * @param {Function} next
  */
-function respondWithError(res, error, code = 500) {
-  winston.error(error);
+module.exports = function handleErrors(error, req, res, next) {
+  console.error(error);
+  const code = 500;
 
   if (error instanceof ValidationError) {
     res.status(400).json({
@@ -47,22 +49,4 @@ function respondWithError(res, error, code = 500) {
       },
     });
   }
-}
-
-
-/**
- * Generic success handler used by all api endpoints.
- * 
- * @param {Object} res – Express response object.
- * @param {any} data – response payload.
- * @param {number} [code=200] 
- */
-function respondWithSuccess(res, data, code = 200) {
-  res.status(code).json({ status: 'success', data });
-}
-
-
-module.exports = {
-  respondWithError,
-  respondWithSuccess,
 };

@@ -1,16 +1,16 @@
 /** @module middlewares */
 
-const allowCrossDomain = require('./allowCrossDomain');
+const allowCrossDomain = require('./allow-cross-domain');
+const handleErrors = require('./handle-errors');
 const authenticate = require('./authenticate');
 const authorize = require('./authorize');
-const validate = require('./validate');
-const parse = require('./parse');
+const parseQuery = require('./parse-query');
 
 
 module.exports = {
   allowCrossDomain,
+  handleErrors,
   authenticate,
   authorize,
-  validate,
-  parse,
+  parseQuery,
 };
